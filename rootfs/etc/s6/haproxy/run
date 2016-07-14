@@ -1,0 +1,35 @@
+#!/bin/bash
+
+if [ -f ./setup ]
+then
+  source ./setup
+fi
+
+STARTCMD="/usr/sbin/haproxy -f /etc/haproxy/haproxy.cfg"
+
+if [ -n "${TCPPROXY_TOTAL_MAXIMUM}" ]
+then
+  STARTCMD="${STARTCMD} -n ${TCPPROXY_TOTAL_MAXIMUM}"
+fi
+
+if [ -n "${TCPPROXY_PROXY_MAXIMUM}" ]
+then
+  STARTCMD="${STARTCMD} -N ${TCPPROXY_PROXY_MAXIMUM}"
+fi
+
+if [ -n "${TCPPROXY_MEMORY_LIMIT}" ]
+then
+  STARTCMD="${STARTCMD} -m ${TCPPROXY_MEMORY_LIMIT}"
+fi
+
+if [ -n "${TCPPROXY_PEER_NAME}" ]
+then
+  STARTCMD="${STARTCMD} -L ${TCPPROXY_PEER_NAME}"
+fi
+
+if [ -n "${TCPPROXY_OPTS}" ]
+then
+  STARTCMD="${STARTCMD} ${TCPPROXY_OPTS}"
+fi
+
+exec ${STARTCMD}

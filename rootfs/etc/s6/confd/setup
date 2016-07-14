@@ -1,0 +1,103 @@
+#!/bin/bash
+
+declare -x TCPPROXY_USERNAME
+if [ -z "${TCPPROXY_USERNAME}" ]
+then
+  TCPPROXY_USERNAME="webhippie"
+fi
+
+declare -x TCPPROXY_PASSWORD
+if [ -z "${TCPPROXY_PASSWORD}" ]
+then
+  TCPPROXY_PASSWORD="webhippie"
+fi
+
+declare -x DISCOVERY_TYPE
+if [ -z "${DISCOVERY_TYPE}" ]
+then
+  DISCOVERY_TYPE="etcd"
+fi
+
+declare -x DISCOVERY_HOST
+if [ -z "${DISCOVERY_HOST}" ]
+then
+  DISCOVERY_HOST="http://etcd"
+fi
+
+declare -x DISCOVERY_PORT
+if [ -z "${DISCOVERY_PORT}" ]
+then
+  DISCOVERY_PORT="2379"
+fi
+
+declare -x DISCOVERY_INTERVAL
+if [ -z "${DISCOVERY_INTERVAL}" ]
+then
+  DISCOVERY_INTERVAL="30"
+fi
+
+declare -x DISCOVERY_PREFIX
+if [ -z "${DISCOVERY_PREFIX}" ]
+then
+  DISCOVERY_PREFIX="/tcpproxy"
+fi
+
+case "${DISCOVERY_TYPE}" in
+  etcd)
+    declare -x ETCDCTL_COMMAND
+
+    if [ -n "${DISCOVERY_CLIENT_KEY}" ]
+    then
+      if [ ! -f "${DISCOVERY_CLIENT_KEY}" ]
+      then
+        echo -e "${DISCOVERY_CLIENT_KEY}" >| /tmp/etcd.key
+        DISCOVERY_CLIENT_KEY="/tmp/etcd.key"
+      fi
+    fi
+
+    if [ -n "${DISCOVERY_CLIENT_CERT}" ]
+    then
+      if [ ! -f "${DISCOVERY_CLIENT_CERT}" ]
+      then
+        echo -e "${DISCOVERY_CLIENT_CERT}" >| /tmp/etcd.crt
+        DISCOVERY_CLIENT_CERT="/tmp/etcd.crt"
+      fi
+    fi
+
+    if [ -n "${DISCOVERY_CLIENT_CA}" ]
+    then
+      if [ ! -f "${DISCOVERY_CLIENT_CA}" ]
+      then
+        echo -e "${DISCOVERY_CLIENT_CA}" >| /tmp/ca.crt
+        DISCOVERY_CLIENT_CA="/tmp/ca.crt"
+      fi
+    fi
+
+    if [ -z "${ETCDCTL_COMMAND}" ]
+    then
+      ETCDCTL_COMMAND="/usr/bin/etcdctl --peers=${DISCOVERY_HOST}:${DISCOVERY_PORT}"
+    else
+      ETCDCTL_COMMAND="${ETCDCTL_COMMAND} --peers=${DISCOVERY_HOST}:${DISCOVERY_PORT}"
+    fi
+
+    if [ -n "${DISCOVERY_CLIENT_KEY}" ]
+    then
+      ETCDCTL_COMMAND="${ETCDCTL_COMMAND} --key-file=${DISCOVERY_CLIENT_KEY}"
+    fi
+
+    if [ -n "${DISCOVERY_CLIENT_CERT}" ]
+    then
+      ETCDCTL_COMMAND="${ETCDCTL_COMMAND} --cert-file=${DISCOVERY_CLIENT_CERT}"
+    fi
+
+    if [ -n "${DISCOVERY_CLIENT_CA}" ]
+    then
+      ETCDCTL_COMMAND="${ETCDCTL_COMMAND} --ca-file=${DISCOVERY_CLIENT_CA}"
+    fi
+
+    if ! ${ETCDCTL_COMMAND} ls ${DISCOVERY_PREFIX} > /dev/null 2>&1
+    then
+      ${ETCDCTL_COMMAND} mkdir ${DISCOVERY_PREFIX}
+    fi
+    ;;
+esac

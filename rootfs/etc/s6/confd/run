@@ -1,0 +1,44 @@
+#!/bin/bash
+
+if [ -f ./setup ]
+then
+  source ./setup
+fi
+
+STARTCMD="/usr/bin/confd -log-level info"
+
+if [ -n "${DISCOVERY_INTERVAL}" ]
+then
+  STARTCMD="${STARTCMD} -interval ${DISCOVERY_INTERVAL}"
+fi
+
+case "${DISCOVERY_TYPE}" in
+  etcd)
+    STARTCMD="${STARTCMD} -backend etcd -prefix ${DISCOVERY_PREFIX} ${DISCOVERY_OPTS} -node ${DISCOVERY_HOST}:${DISCOVERY_PORT}"
+
+    if [ -n "${DISCOVERY_CLIENT_KEY}" ]
+    then
+      STARTCMD="${STARTCMD} -client-key=${DISCOVERY_CLIENT_KEY}"
+    fi
+
+    if [ -n "${DISCOVERY_CLIENT_CERT}" ]
+    then
+      STARTCMD="${STARTCMD} -client-cert=${DISCOVERY_CLIENT_CERT}"
+    fi
+
+    if [ -n "${DISCOVERY_CLIENT_CA}" ]
+    then
+      STARTCMD="${STARTCMD} -client-ca-keys=${DISCOVERY_CLIENT_CA}"
+    fi
+    ;;
+
+  consul)
+    STARTCMD="${STARTCMD} -backend consul -prefix ${DISCOVERY_PREFIX} ${DISCOVERY_OPTS} -node ${DISCOVERY_HOST}:${DISCOVERY_PORT}"
+    ;;
+
+  env)
+    STARTCMD="${STARTCMD} -backend env -prefix ${DISCOVERY_PREFIX} ${DISCOVERY_OPTS}"
+    ;;
+esac
+
+exec ${STARTCMD}

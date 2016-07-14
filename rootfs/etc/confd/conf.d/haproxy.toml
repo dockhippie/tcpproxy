@@ -1,0 +1,9 @@
+[template]
+src = "haproxy.cfg.tmpl"
+dest = "/etc/haproxy/haproxy.cfg"
+
+keys = [
+  "/"
+]
+
+reload_cmd = "s6-svc -h /etc/s6/haproxy"
