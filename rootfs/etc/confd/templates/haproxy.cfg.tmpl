@@ -9,6 +9,8 @@ global
   user haproxy
   group haproxy
 
+  debug
+
   stats socket /var/lib/haproxy/stats
 
 defaults
@@ -38,6 +40,7 @@ listen stats
 
 {{range lsdir "/app"}}listen {{.}}
   bind {{getv (printf "/app/%s/listen" .)}}
+  mode tcp
 {{range gets (printf "/app/%s/servers/*" .)}}
   server {{base .Key}} {{base .Value}}{{end}}
 {{range gets (printf "/app/%s/options/*" .)}}
