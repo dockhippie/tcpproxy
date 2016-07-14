@@ -6,4 +6,4 @@ keys = [
   "/"
 ]
 
-reload_cmd = "s6-svc -h /etc/s6/haproxy"
+reload_cmd = "s6-svc -2 /etc/s6/haproxy"
